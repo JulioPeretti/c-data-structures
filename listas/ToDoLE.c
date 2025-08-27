@@ -175,7 +175,7 @@ void cleanTarefas(No **cabecaDaLista_p, int *tarefasNum_p, int *proximoID_p)
 
 int main()
 {
-    No *cabecaDaLista = NULL; /*Lazy Allocation, so aloca a memoria se o usuario realmente querer adicionar algo a lista*/
+    No *cabecaDaLista = NULL; 
     int tarefasNum = 0;
     int proximoId = 1;
     int opcao = 0;
@@ -225,3 +225,4 @@ int main()
     cleanTarefas(&cabecaDaLista, &tarefasNum, &proximoId);
     return 0;
 }
+
