@@ -175,13 +175,15 @@ void cleanTarefas(No **cabecaDaLista_p, int *tarefasNum_p, int *proximoID_p)
 
 int main()
 {
-    No *cabecaDaLista = NULL; 
+    No *cabecaDaLista = NULL; /*Lazy Allocation, so aloca a memoria se o usuario realmente querer adicionar algo a lista*/
     int tarefasNum = 0;
     int proximoId = 1;
     int opcao = 0;
 
     while (opcao != 6)
     {
+        char buffer_entrada[MAX];
+        printf("----------------------------------------------------\n");
         printf("Bem vindo a sua To-Do-List, o que deseja fazer?\n");
         printf("1) Exibir todas as tarefas.\n");
         printf("2) Adicionar uma nova tarefa.\n");
@@ -189,11 +191,19 @@ int main()
         printf("4) Marcar tarefa como concluída.\n");
         printf("5) Limpar a lista de tarefas.\n");
         printf("6) Sair da lista.\n");
-        scanf("%i", &opcao);
-        int c;
-        while ((c = getchar()) != '\n' && c != EOF) /*Devido a utilização de Scanf junto com Fgets, esse loop é necessário para contornar o espaço invisível*/
-            ;
-
+        if (fgets(buffer_entrada, sizeof(buffer_entrada), stdin) != NULL)
+        {
+            if (sscanf(buffer_entrada, "%i", &opcao) != 1)
+            {
+                printf("Erro, digite apenas numeros!\n");
+                continue;
+            }
+        }
+        else
+        {
+            printf("Erro, nada foi digitado!\n");
+            continue;
+        }
         switch (opcao)
         {
         case 1:
@@ -225,4 +235,3 @@ int main()
     cleanTarefas(&cabecaDaLista, &tarefasNum, &proximoId);
     return 0;
 }
-
