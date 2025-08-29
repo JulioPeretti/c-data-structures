@@ -61,6 +61,30 @@ void addTarefa(No **cabecaDaLista_p, int *tarefasNum_p, int *proximoID)
     printf("Tarefa adicionada no inicio da lista!\n");
 }
 
+void addTarefaArquivo(No **cabecaDaLista_p, int *tarefasNum_p, int *proximoID, int Id, int status, char descricao[MAX])
+{
+    No *novaTarefa = malloc(sizeof(No));
+    if (novaTarefa == NULL)
+    {
+        printf("Erro critico: Falha ao alocar memoria para a nova tarefa!\n");
+        return;
+    }
+
+    printf("Carregando arquivo...\n");
+    novaTarefa->tarefa.numeroTarefa = (Id);
+    if (*proximoID <= Id)
+    {
+        *proximoID = Id + 1;
+    }
+    strncpy(novaTarefa->tarefa.nomeTarefa, descricao, MAX - 1);
+    novaTarefa->tarefa.nomeTarefa[MAX - 1] = '\0';
+    novaTarefa->tarefa.tarefaFeita = status;
+    novaTarefa->proximo = *cabecaDaLista_p; /*Guarda o endereço do proximo elemento */
+    *cabecaDaLista_p = novaTarefa;
+
+    (*tarefasNum_p)++;
+}
+
 void removeTarefa(No **cabecaDaLista_p, int *tarefasNum_p)
 {
     printf("Digite o numero da tarefa que deseja remover: ");
@@ -173,12 +197,53 @@ void cleanTarefas(No **cabecaDaLista_p, int *tarefasNum_p, int *proximoID_p)
     printf("Lista limpa com sucesso!\n");
 }
 
+void saveTarefas(No *cabecaDaLista)
+{
+    FILE *arquivo = fopen("tarefas.csv", "w");
+    if (arquivo == NULL)
+    {
+        printf("Erro ao abrir arquivo para salvar!\n");
+        return;
+    }
+
+    No *atual = cabecaDaLista;
+    while (atual != NULL)
+    {
+        fprintf(arquivo, "%d,%d,%s\n", atual->tarefa.numeroTarefa, atual->tarefa.tarefaFeita, atual->tarefa.nomeTarefa);
+        atual = atual->proximo;
+    }
+
+    fclose(arquivo);
+    printf("Tarefas salvas no arquivo externo!\n");
+}
+
+void loadTarefas(No **cabecaDaLista, int *proximoId, int *tarefasNum)
+{
+    FILE *arquivo = fopen("tarefas.csv", "r");
+
+    if (arquivo == NULL)
+    {
+        printf("Nenhum arquivo de tarefas encontrado. Começando uma nova lista.\n");
+        return;
+    }
+
+    char linha[256];
+    while (fgets(linha, sizeof(linha), arquivo) != NULL)
+    {
+        int id, status;
+        char descricao[MAX];
+        sscanf(linha, "%d,%d,%49[^\n]", &id, &status, descricao);
+        addTarefaArquivo(cabecaDaLista, tarefasNum, proximoId, id, status, descricao);
+    }
+}
+
 int main()
 {
-    No *cabecaDaLista = NULL; /*Lazy Allocation, so aloca a memoria se o usuario realmente querer adicionar algo a lista*/
+    No *cabecaDaLista = NULL;
     int tarefasNum = 0;
     int proximoId = 1;
     int opcao = 0;
+    loadTarefas(&cabecaDaLista, &proximoId, &tarefasNum);
 
     while (opcao != 6)
     {
@@ -212,25 +277,26 @@ int main()
 
         case 2:
             addTarefa(&cabecaDaLista, &tarefasNum, &proximoId);
+            saveTarefas(cabecaDaLista);
             break;
 
         case 3:
             removeTarefa(&cabecaDaLista, &tarefasNum);
+            saveTarefas(cabecaDaLista);
             break;
 
         case 4:
             concludeTarefa(cabecaDaLista, &tarefasNum);
+            saveTarefas(cabecaDaLista);
             break;
 
         case 5:
             cleanTarefas(&cabecaDaLista, &tarefasNum, &proximoId);
-            break;
-
-        default:
-            printf("Saindo da lista!\n");
+            saveTarefas(cabecaDaLista);
             break;
         }
     }
+    printf("Saindo da lista!\n");
 
     cleanTarefas(&cabecaDaLista, &tarefasNum, &proximoId);
     return 0;
